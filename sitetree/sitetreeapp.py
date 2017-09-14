@@ -61,6 +61,7 @@ _THREAD_LOCAL = local()
 _THREAD_SITETREE = 'sitetree'
 
 _URL_TAG_NEW_STYLE = VERSION >= (1, 5, 0)
+_CONTEXT_FLATTEN = VERSION >= (1, 11)
 
 _UNSET = set()  # Sentinel
 
@@ -389,7 +390,7 @@ class SiteTree(object):
         if alias not in _I18N_TREES:
             return alias
 
-        current_language_code = self.current_lang.replace('_', '-').split('-')[0]
+        current_language_code = self.current_lang
         i18n_tree_alias = '%s_%s' % (alias, current_language_code)
         trees_count = self.cache.get_entry('tree_aliases', i18n_tree_alias)
 
@@ -989,7 +990,7 @@ class SiteTree(object):
 
         context.push()
         context['sitetree_items'] = tree_items
-        rendered = my_template.render(context)
+        rendered = my_template.render(context.flatten() if _CONTEXT_FLATTEN else context)
         context.pop()
 
         return rendered
