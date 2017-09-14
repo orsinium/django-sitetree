@@ -49,9 +49,9 @@ def tree(alias, title='', items=None):
     return tree_obj
 
 
-def item(title, url, children=None, url_as_pattern=True, hint='', alias='', description='',
+def item(title, url, children=None, icon=None, url_as_pattern=True, hint='', alias='', description='',
          in_menu=True, in_breadcrumbs=True, in_sitetree=True,
-         access_loggedin=False, access_guest=False,
+         access_loggedin=False, access_guest=False, access_staff=False,
          access_by_perms=None, perms_mode_all=True, **kwargs):
     """Dynamically creates and returns a sitetree item object.
 
@@ -73,10 +73,10 @@ def item(title, url, children=None, url_as_pattern=True, hint='', alias='', desc
                 False - user should have any of chosen permissions.
     :rtype: TreeItemBase
     """
-    item_obj = get_tree_item_model()(title=title, url=url, urlaspattern=url_as_pattern,
+    item_obj = get_tree_item_model()(title=title, url=url, urlaspattern=url_as_pattern, icon=icon,
                                    hint=hint, alias=alias, description=description, inmenu=in_menu,
                                    insitetree=in_sitetree, inbreadcrumbs=in_breadcrumbs,
-                                   access_loggedin=access_loggedin, access_guest=access_guest, **kwargs)
+                                   access_loggedin=access_loggedin, access_guest=access_guest, access_staff=access_staff, **kwargs)
 
     item_obj.id = generate_id_for(item_obj)
     item_obj.is_dynamic = True

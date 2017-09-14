@@ -136,6 +136,11 @@ def sitetree_url(parser, token):
 
 
 @register.tag
+def sitetree_breadcrumbs_url(parser, token):
+    return sitetree_breadcrumbs_urlNode.for_tag(parser, token, 'for', 'sitetree_breadcrumbs_url for someitem')
+
+
+@register.tag
 def sitetree_page_title(parser, token):
     """Renders a title for current page, resolved against sitetree item representing current URL."""
     return sitetree_page_titleNode.for_tag(parser, token, 'from', 'sitetree_page_title from "mytree"')
@@ -253,6 +258,14 @@ class sitetree_urlNode(SimpleNode):
 
     def get_value(self, context):
         return get_sitetree().url(self.item, context)
+
+
+class sitetree_breadcrumbs_urlNode(SimpleNode):
+    """Resolves and renders specified url."""
+
+    def get_value(self, context):
+        kwargs = context['request'].resolver_match.kwargs
+        return get_sitetree().url(self.item, context, url_kwargs=kwargs)
 
 
 class sitetree_page_titleNode(SimpleNode):
