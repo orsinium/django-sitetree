@@ -62,6 +62,10 @@ class TreeItemBase(models.Model):
     title = models.CharField(
         _('Title'), max_length=100,
         help_text=_('Site tree item title. Can contain template variables E.g.: {{ mytitle }}.'))
+    icon = models.CharField(
+        _('Icon'), max_length=20,
+        help_text=_('Site tree item icon for menu.'),
+        blank=True, null=True)
     hint = models.CharField(
         _('Hint'), max_length=200,
         help_text=_('Some additional information about this item that is used as a hint.'), blank=True, default='')
@@ -104,6 +108,9 @@ class TreeItemBase(models.Model):
     access_guest = models.BooleanField(
         _('Guests only'),
         help_text=_('Check it to grant access to this item to guests only.'), db_index=True, default=False)
+    access_staff = models.BooleanField(
+        _('Staff members only'),
+        help_text=_('Check it to grant access to this item to staff members only.'), db_index=True, default=False)
     access_restricted = models.BooleanField(
         _('Restrict access to permissions'),
         help_text=_('Check it to restrict user access to this item, using Django permissions system.'),

@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from . import hooks_by_gram
 import warnings
 from collections import defaultdict
 from copy import deepcopy
@@ -609,11 +610,25 @@ class SiteTree(object):
 
         # urlquote is an attempt to support non-ascii in url.
         current_url = urlquote(self.current_request.path)
+        if current_url[-1] != '/':
+            current_url += '/'
 
         for url_item, url in self._items_urls.items():
+            #add slash to end of url
+            pat = (url[-1] == '$')
+            if pat:
+                url = url[:-1]
+            if url[-1] != '/' and url[-2:] != '/?':
+                url += '/'
+            if pat:
+                url += '$'
+            
             # Iterate each as this dict may contains "current" items for various trees.
             if url != current_url:
-                continue
+                if '?P' not in url: #if not regex
+                    continue
+                if not hooks_by_gram.re.match(url, current_url):
+                    continue
 
             url_item.is_current = True
             if url_item.tree.alias == tree_alias:
@@ -621,10 +636,10 @@ class SiteTree(object):
 
         if current_item is not None:
             self._current_items[tree_alias] = current_item
-
+        
         return current_item
 
-    def url(self, sitetree_item, context=None):
+    def url(self, sitetree_item, context=None, url_kwargs=None):
         """Resolves item's URL.
 
         :param TreeItemBase sitetree_item: TreeItemBase heir object, 'url' property of which
@@ -641,8 +656,11 @@ class SiteTree(object):
 
         resolved_url = self._items_urls.get(sitetree_item)
         if resolved_url is not None:
-            return resolved_url
-
+            if not url_kwargs:
+                return resolved_url
+            if '?P' not in resolved_url:
+                return resolved_url
+        
         # Resolve only if item's URL is marked as pattern.
         if sitetree_item.urlaspattern:
             url = sitetree_item.url
@@ -673,13 +691,22 @@ class SiteTree(object):
 
         if sitetree_item.urlaspattern:
             # Form token to pass to Django 'url' tag.
-            url_token = 'url %s as item.url_resolved' % url_pattern
+            if url_kwargs:
+                url_kwargs = ','.join(["{}='{}'".format(k,v) for k,v in url_kwargs.items()])
+                url_token = 'url {} {} as item.url_resolved'.format(url_pattern, url_kwargs)
+            else:
+                url_token = 'url {} as item.url_resolved'.format(url_pattern)
             url_tag(
                 Parser(None),
                 Token(token_type=TOKEN_BLOCK, contents=url_token)
             ).render(context)
 
-            resolved_url = context['item.url_resolved'] or UNRESOLVED_ITEM_MARKER
+            resolved_url = context['item.url_resolved']
+            if not resolved_url:
+                url_pattern = url_pattern[1:-2]
+                resolved_url = hooks_by_gram.url_soft(url_pattern)
+            if not resolved_url:
+                resolved_url = UNRESOLVED_ITEM_MARKER
 
         else:
             resolved_url = url_pattern
@@ -852,11 +879,15 @@ class SiteTree(object):
         :rtype: bool
         """
         authenticated = self.current_request.user.is_authenticated()
+        is_staff = self.current_request.user.is_staff
 
         if item.access_loggedin and not authenticated:
             return False
 
         if item.access_guest and authenticated:
+            return False
+
+        if item.access_staff and not is_staff:
             return False
 
         if item.access_restricted:
