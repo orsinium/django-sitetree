@@ -1,18 +1,24 @@
 {% load sitetree %}
 <ul class="navbar-nav mr-auto">
-    {% for item in sitetree_items %}
-        <li class="nav-item {% if item.has_children %}dropdown{% endif %} {% if item.is_current or item.in_current_branch %}active{% endif %}">
-            <a href="{% if item.has_children %}#{% else %}{% sitetree_url for item %}{% endif %}" class="nav-link {% if item.has_children %}dropdown-toggle" id="navbar{{ item.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false{% endif %}">
-                {% if item.icon %}
-                    <i class="fa fa-{{ item.icon }}"></i>
-                {% endif %}
-                {{ item.title_resolved }}
-            </a>
-            {% if item.has_children %}
-                <ul class="dropdown-menu" aria-labelledby="navbar{{ item.id }}">
-                    {% sitetree_children of item for menu template "sitetree/menu_bootstrap4_dropdown.html" %}
-                </ul>
+  {% for item in sitetree_items %}
+    <li class="nav-item {% if item.has_children %}dropdown{% endif %} {% if item.is_current or item.in_current_branch %}active{% endif %}">
+      <a href="{% if item.has_children %}#{% else %}{% sitetree_url for item %}{% endif %}" class="nav-link {% if item.has_children %}dropdown-toggle" id="navbar{{ item.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false{% endif %}">
+        {% if item.icon %}
+          <i class="fa fa-{{ item.icon }}"></i>
+        {% endif %}
+        {{ item.title_resolved }}
+      </a>
+      {% if item.has_children %}
+        <ul class="dropdown-menu" aria-labelledby="navbar{{ item.id }}">
+          <a href="{% sitetree_url for item %}" {% if item.hint %}title="{{ item.hint }}"{% endif %} class="dropdown-item {% if item.is_current or item.in_current_branch %}active{% endif %}">
+            {% if item.icon %}
+              <i class="fa fa-{{ item.icon }}"></i>
             {% endif %}
-        </li>
-    {% endfor %}
+            {{ item.title_resolved }}
+          </a>
+          {% sitetree_children of item for menu template "sitetree/menu_bootstrap4_dropdown.html" %}
+        </ul>
+      {% endif %}
+    </li>
+  {% endfor %}
 </ul>
